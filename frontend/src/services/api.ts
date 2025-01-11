@@ -35,4 +35,9 @@ export const deleteMember = (id: number) => api.delete(`/members/${id}`);
 export const getFamilyAffiliations = () => api.get<FamilyAffiliation[]>('/affiliations/');
 
 // Meal Types
-export const getMealTypes = () => api.get<MealType[]>('/meal-types/'); 
+export const getMealTypes = () => api.get<MealType[]>('/meal-types/');
+
+// Wishlist
+export const getWishlistItems = () => api.get<WishlistItem[]>('/wishlist/');
+export const createWishlistItem = (item: Omit<WishlistItem, 'id'>) => api.post<WishlistItem>('/wishlist/', item);
+export const deleteWishlistItem = (id: number) => api.delete(`/wishlist/${id}`); 

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Dish, FamilyAffiliation } from '../types';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { EditDishDialog } from './EditDishDialog';
 import { getFamilyAffiliations } from '../services/api';
 
 interface DishListProps {
     dishes: Dish[];
-    onEdit: (dish: Dish) => void;
+    onEdit: (id: number, updatedDish: Omit<Dish, 'id'>) => void;
     onDelete: (id: number) => void;
 }
 
 export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) => {
+    const [editingDish, setEditingDish] = useState<Dish | null>(null);
     const [affiliations, setAffiliations] = useState<FamilyAffiliation[]>([]);
 
     useEffect(() => {
@@ -18,7 +20,7 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
                 const response = await getFamilyAffiliations();
                 setAffiliations(response.data);
             } catch (error) {
-                console.error('Error fetching family affiliations:', error);
+                console.error('Failed to fetch family affiliations:', error);
             }
         };
         fetchAffiliations();
@@ -26,66 +28,77 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
 
     const getAffiliationName = (id: number) => {
         const affiliation = affiliations.find(a => a.id === id);
-        return affiliation?.name || 'Unknown';
+        return affiliation ? affiliation.name : 'Unknown';
     };
 
-    return (
-        <div className="mt-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                                Full Name
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Dish Name
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Quantity (g)
-                            </th>
-                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                Family Affiliation
-                            </th>
-                            <th scope="col" className="relative py-3.5 pl-3 pr-4">
-                                <span className="sr-only">Actions</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                        {dishes.map((dish) => (
-                            <tr key={dish.id}>
-                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                    {dish.fullName}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    {dish.name}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    {dish.quantity}
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                    {getAffiliationName(dish.member_id)}
-                                </td>
-                                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium">
-                                    <button
-                                        onClick={() => onEdit(dish)}
-                                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                    >
-                                        <PencilIcon className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => dish.id && onDelete(dish.id)}
-                                        className="text-red-600 hover:text-red-900"
-                                    >
-                                        <TrashIcon className="h-5 w-5" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+    if (dishes.length === 0) {
+        return (
+            <div className="text-center text-gray-500 py-4">
+                No dishes yet. Add one to get started!
             </div>
-        </div>
+        );
+    }
+
+    return (
+        <>
+            <div className="space-y-4">
+                {dishes.map((dish) => (
+                    <div
+                        key={dish.id}
+                        className="bg-white shadow rounded-lg p-4 flex justify-between items-start hover:shadow-md transition-shadow"
+                    >
+                        <div className="flex-1">
+                            <div className="flex items-baseline space-x-3">
+                                <h3 className="text-lg font-semibold text-gray-900">{dish.name}</h3>
+                                <span className="text-lg font-medium text-emerald-600">{dish.quantity}g</span>
+                            </div>
+                            <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
+                                <div className="flex items-center">
+                                    <span className="font-medium">By:</span>
+                                    <span className="ml-1">{dish.fullName}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="font-medium">Family:</span>
+                                    <span className="ml-1">{getAffiliationName(dish.member_id)}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="font-medium">Type:</span>
+                                    <span className="ml-1">{dish.meal_type}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                            <button
+                                onClick={() => setEditingDish(dish)}
+                                className="text-blue-600 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 transition-colors"
+                                title="Edit Dish"
+                            >
+                                <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button
+                                onClick={() => dish.id && onDelete(dish.id)}
+                                className="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
+                                title="Delete Dish"
+                            >
+                                <TrashIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {editingDish && (
+                <EditDishDialog
+                    dish={editingDish}
+                    onClose={() => setEditingDish(null)}
+                    onSubmit={(updatedDish) => {
+                        if (editingDish.id) {
+                            onEdit(editingDish.id, updatedDish);
+                            setEditingDish(null);
+                        }
+                    }}
+                />
+            )}
+        </>
     );
 }; 

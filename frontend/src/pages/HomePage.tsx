@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { DishForm } from '../components/DishForm';
 import { DishList } from '../components/DishList';
-import { Dish } from '../types';
-import { getDishes, createDish, updateDish, deleteDish } from '../services/api';
+import { WishlistForm } from '../components/WishlistForm';
+import { WishlistDisplay } from '../components/WishlistDisplay';
+import { Dish, WishlistItem } from '../types';
+import { Toaster } from 'react-hot-toast';
+import {
+    getDishes,
+    createDish,
+    updateDish,
+    deleteDish,
+    getWishlistItems,
+    createWishlistItem,
+    deleteWishlistItem,
+} from '../services/api';
+import { AddDishButton } from '../components/AddDishButton';
 
 export const HomePage: React.FC = () => {
     const [dishes, setDishes] = useState<Dish[]>([]);
+    const [wishes, setWishes] = useState<WishlistItem[]>([]);
     const [editingDish, setEditingDish] = useState<Dish | null>(null);
 
     useEffect(() => {
         fetchDishes();
+        fetchWishes();
     }, []);
 
     const fetchDishes = async () => {
@@ -21,25 +35,34 @@ export const HomePage: React.FC = () => {
         }
     };
 
-    const handleSubmit = async (dish: Omit<Dish, 'id'>) => {
+    const fetchWishes = async () => {
         try {
-            if (editingDish) {
-                await updateDish(editingDish.id!, dish);
-            } else {
-                await createDish(dish);
-            }
-            fetchDishes();
-            setEditingDish(null);
+            const response = await getWishlistItems();
+            setWishes(response.data);
         } catch (error) {
-            console.error('Error saving dish:', error);
+            console.error('Error fetching wishes:', error);
         }
     };
 
-    const handleEdit = (dish: Dish) => {
-        setEditingDish(dish);
+    const handleDishSubmit = async (dish: Omit<Dish, 'id'>) => {
+        try {
+            await createDish(dish);
+            await fetchDishes();
+        } catch (error) {
+            console.error('Failed to create dish:', error);
+        }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDishEdit = async (id: number, updatedDish: Omit<Dish, 'id'>) => {
+        try {
+            await updateDish(id, updatedDish);
+            await fetchDishes();
+        } catch (error) {
+            console.error('Failed to update dish:', error);
+        }
+    };
+
+    const handleDishDelete = async (id: number) => {
         try {
             await deleteDish(id);
             fetchDishes();
@@ -48,29 +71,78 @@ export const HomePage: React.FC = () => {
         }
     };
 
+    const handleWishSubmit = async (wish: Omit<WishlistItem, 'id'>) => {
+        try {
+            await createWishlistItem(wish);
+            fetchWishes();
+        } catch (error) {
+            console.error('Error creating wish:', error);
+        }
+    };
+
+    const handleWishDelete = async (id: number) => {
+        try {
+            await deleteWishlistItem(id);
+            fetchWishes();
+        } catch (error) {
+            console.error('Error deleting wish:', error);
+        }
+    };
+
+    const handleWishResolve = async (wish: WishlistItem, dish: Omit<Dish, 'id'>) => {
+        try {
+            // Create the new dish
+            await createDish(dish);
+            // Delete the resolved wish
+            if (wish.id) {
+                await deleteWishlistItem(wish.id);
+            }
+            // Refresh both lists
+            fetchDishes();
+            fetchWishes();
+        } catch (error) {
+            console.error('Error resolving wish:', error);
+        }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="px-4 py-6 sm:px-0">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Easter Meal Planning</h1>
-                
-                <div className="bg-white shadow sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">
-                            {editingDish ? 'Edit Dish' : 'Add New Dish'}
-                        </h2>
-                        <DishForm
-                            onSubmit={handleSubmit}
-                            initialValues={editingDish || undefined}
+        <>
+            <Toaster
+                position="bottom-center"
+                containerStyle={{
+                    top: '15%',
+                    transform: 'translateY(-50%)'
+                }}
+            />
+            <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Easter Dishes</h2>
+                        <div className="text-left">
+                            <AddDishButton onSubmit={handleDishSubmit} />
+                        </div>
+                        <DishList
+                            dishes={dishes}
+                            onEdit={handleDishEdit}
+                            onDelete={handleDishDelete}
                         />
                     </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Meal Wishlist</h2>
+                        <div className="flex justify-center items-center gap-4 mb-4">
+                            <span className="text-lg font-medium text-gray-700">Make a special request!</span>
+                            <WishlistForm onSubmit={handleWishSubmit} />
+                        </div>
+                        <div className="mt-6">
+                            <WishlistDisplay
+                                wishes={wishes}
+                                onDelete={handleWishDelete}
+                                onResolve={handleWishResolve}
+                            />
+                        </div>
+                    </div>
                 </div>
-
-                <DishList
-                    dishes={dishes}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                />
             </div>
-        </div>
+        </>
     );
 }; 

@@ -5,6 +5,8 @@ import { getMembers, getFamilyAffiliations, getMealTypes } from '../services/api
 interface DishFormProps {
     onSubmit: (dish: Omit<Dish, 'id'>) => void;
     initialValues?: Dish;
+    onCancel?: () => void;
+    submitButtonText?: string;
 }
 
 interface DishFormData {
@@ -15,7 +17,7 @@ interface DishFormData {
     meal_type: string;
 }
 
-export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues }) => {
+export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onCancel, submitButtonText }) => {
     const [affiliations, setAffiliations] = useState<FamilyAffiliation[]>([]);
     const [mealTypes, setMealTypes] = useState<MealType[]>([]);
     const [formData, setFormData] = useState<DishFormData>({
@@ -153,12 +155,23 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues }) =
                 </select>
             </div>
 
-            <button
-                type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-                {initialValues ? 'Update Dish' : 'Add Dish'}
-            </button>
+            <div className="flex justify-end space-x-3">
+                {onCancel && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        Cancel
+                    </button>
+                )}
+                <button
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                    {submitButtonText || (initialValues ? 'Update Dish' : 'Add Dish')}
+                </button>
+            </div>
         </form>
     );
 }; 

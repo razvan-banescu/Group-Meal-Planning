@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import meals, families, members
+from .routers import meals, families, members, wishlist
 from .database.database import engine
 from .models import models
 
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(meals.router, prefix="/api", tags=["meals"])
 app.include_router(families.router, prefix="/api", tags=["families"])
 app.include_router(members.router, prefix="/api", tags=["members"])
+app.include_router(wishlist.router, prefix="/api", tags=["wishlist"])
 
 
 @app.get("/")
