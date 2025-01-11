@@ -66,18 +66,15 @@ export const AddDishButton: React.FC<AddDishButtonProps> = ({ onSubmit }) => {
 
     return (
         <>
-            <div className="flex justify-center items-center mb-6 gap-4">
-                <span className="text-lg font-medium text-gray-700">What are you going to bring?</span>
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg 
-                             hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                             focus:ring-emerald-500 shadow-sm transition-colors gap-2"
-                >
-                    <PlusIcon className="h-5 w-5" />
-                    <span className="font-medium">Add New Dish</span>
-                </button>
-            </div>
+            <button
+                onClick={() => setIsOpen(true)}
+                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg 
+                         hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                         focus:ring-emerald-500 shadow-sm transition-colors gap-2"
+            >
+                <PlusIcon className="h-5 w-5" />
+                <span className="font-medium">Add New Dish</span>
+            </button>
 
             {isOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

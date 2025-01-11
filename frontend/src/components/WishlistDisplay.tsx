@@ -26,11 +26,11 @@ export const WishlistDisplay: React.FC<WishlistDisplayProps> = ({
 
     return (
         <>
-            <div className="space-y-4">
+            <div className="space-y-2">
                 {wishes.map((wish) => (
                     <div
                         key={wish.id}
-                        className="bg-white shadow rounded-lg p-4 flex justify-between items-start"
+                        className="bg-white shadow rounded-lg p-4 flex justify-between items-start hover:shadow-md transition-shadow"
                     >
                         <div className="flex-1">
                             <p className="text-gray-900 font-medium">{wish.dish_name}</p>
@@ -43,7 +43,7 @@ export const WishlistDisplay: React.FC<WishlistDisplayProps> = ({
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setResolvingWish(wish)}
-                                className="text-green-600 hover:text-green-700 flex items-center space-x-1"
+                                className="text-green-600 hover:text-green-700 flex items-center space-x-1 p-1 rounded-full hover:bg-green-50 transition-colors"
                                 title="Resolve Wish"
                             >
                                 <CheckCircleIcon className="h-5 w-5" />
@@ -51,7 +51,7 @@ export const WishlistDisplay: React.FC<WishlistDisplayProps> = ({
                             </button>
                             <button
                                 onClick={() => wish.id && onDelete(wish.id)}
-                                className="text-red-500 hover:text-red-600"
+                                className="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
                                 title="Delete Wish"
                             >
                                 <TrashIcon className="h-5 w-5" />

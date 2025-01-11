@@ -3,6 +3,7 @@ import { DishForm } from '../components/DishForm';
 import { DishList } from '../components/DishList';
 import { WishlistForm } from '../components/WishlistForm';
 import { WishlistDisplay } from '../components/WishlistDisplay';
+import { TotalsByType } from '../components/TotalsByType';
 import { Dish, WishlistItem } from '../types';
 import { Toaster } from 'react-hot-toast';
 import {
@@ -114,31 +115,37 @@ export const HomePage: React.FC = () => {
                     transform: 'translateY(-50%)'
                 }}
             />
-            <div className="container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Easter Dishes</h2>
-                        <div className="text-left">
-                            <AddDishButton onSubmit={handleDishSubmit} />
-                        </div>
-                        <DishList
-                            dishes={dishes}
-                            onEdit={handleDishEdit}
-                            onDelete={handleDishDelete}
-                        />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Meal Wishlist</h2>
-                        <div className="flex justify-center items-center gap-4 mb-4">
-                            <span className="text-lg font-medium text-gray-700">Make a special request!</span>
-                            <WishlistForm onSubmit={handleWishSubmit} />
-                        </div>
-                        <div className="mt-6">
-                            <WishlistDisplay
-                                wishes={wishes}
-                                onDelete={handleWishDelete}
-                                onResolve={handleWishResolve}
+            <div className="px-10">
+                <div className="max-w-[1920px] mx-auto py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-7 gap-10">
+                        <div className="lg:col-span-3 bg-gradient-to-b from-blue-50/50 to-white rounded-xl p-6 transition-shadow hover:shadow-lg">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Easter Dishes</h2>
+                            <div className="flex justify-between items-center gap-4 mb-4">
+                                <span className="text-lg font-medium text-gray-700">What are you going to bring?</span>
+                                <AddDishButton onSubmit={handleDishSubmit} />
+                            </div>
+                            <DishList
+                                dishes={dishes}
+                                onEdit={handleDishEdit}
+                                onDelete={handleDishDelete}
                             />
+                        </div>
+                        <div className="lg:col-span-2 lg:border-l lg:border-gray-200 lg:pl-10 bg-gradient-to-b from-purple-50/50 to-white rounded-xl p-6 transition-shadow hover:shadow-lg">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Meal Wishlist</h2>
+                            <div className="flex justify-between items-center gap-4 mb-4">
+                                <span className="text-lg font-medium text-gray-700">Make a special request!</span>
+                                <WishlistForm onSubmit={handleWishSubmit} />
+                            </div>
+                            <div className="mt-6">
+                                <WishlistDisplay
+                                    wishes={wishes}
+                                    onDelete={handleWishDelete}
+                                    onResolve={handleWishResolve}
+                                />
+                            </div>
+                        </div>
+                        <div className="lg:col-span-2 lg:border-l lg:border-gray-200 lg:pl-10 p-6">
+                            <TotalsByType dishes={dishes} />
                         </div>
                     </div>
                 </div>
