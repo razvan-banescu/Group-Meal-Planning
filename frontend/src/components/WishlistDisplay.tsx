@@ -30,28 +30,32 @@ export const WishlistDisplay: React.FC<WishlistDisplayProps> = ({
                 {wishes.map((wish) => (
                     <div
                         key={wish.id}
-                        className="bg-white shadow rounded-lg p-4 flex justify-between items-start hover:shadow-md transition-shadow"
+                        className="bg-white shadow rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow"
                     >
                         <div className="flex-1">
-                            <p className="text-gray-900 font-medium">{wish.dish_name}</p>
-                            {wish.notes && (
-                                <p className="text-gray-500 text-sm mt-1">
-                                    Directed to: {wish.notes}
-                                </p>
-                            )}
+                            <div className="flex items-baseline mb-2">
+                                <h3 className="text-lg font-semibold text-gray-900">{wish.dish_name}</h3>
+                            </div>
+                            <div className="flex items-center space-x-6 text-sm text-gray-500">
+                                {wish.notes && (
+                                    <>
+                                        <span>Directed to: {wish.notes}</span>
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 ml-4">
                             <button
                                 onClick={() => setResolvingWish(wish)}
                                 className="text-green-600 hover:text-green-700 flex items-center space-x-1 p-1 rounded-full hover:bg-green-50 transition-colors"
                                 title="Resolve Wish"
                             >
                                 <CheckCircleIcon className="h-5 w-5" />
-                                <span className="text-sm">Resolve Wish</span>
+                                <span className="text-sm">Resolve</span>
                             </button>
                             <button
                                 onClick={() => wish.id && onDelete(wish.id)}
-                                className="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
+                                className="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
                                 title="Delete Wish"
                             >
                                 <TrashIcon className="h-5 w-5" />

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Dish, FamilyAffiliation } from '../types';
+import React, { useState } from 'react';
+import { Dish } from '../types';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { EditDishDialog } from './EditDishDialog';
-import { getFamilyAffiliations } from '../services/api';
+import { useRoom } from '../contexts/RoomContext';
 
 interface DishListProps {
     dishes: Dish[];
@@ -10,26 +10,50 @@ interface DishListProps {
     onDelete: (id: number) => void;
 }
 
+type SortOption = 'quantity_high' | 'quantity_low' | 'family' | 'type' | 'none';
+
+// Define meal type order for sorting
+const MEAL_TYPE_ORDER = {
+    'Entree': 1,
+    'Main Course': 2,
+    'Desert': 3
+};
+
 export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) => {
+    const { room } = useRoom();
     const [editingDish, setEditingDish] = useState<Dish | null>(null);
-    const [affiliations, setAffiliations] = useState<FamilyAffiliation[]>([]);
+    const [sortBy, setSortBy] = useState<SortOption>('none');
 
-    useEffect(() => {
-        const fetchAffiliations = async () => {
-            try {
-                const response = await getFamilyAffiliations();
-                setAffiliations(response.data);
-            } catch (error) {
-                console.error('Failed to fetch family affiliations:', error);
-            }
-        };
-        fetchAffiliations();
-    }, []);
-
-    const getAffiliationName = (id: number) => {
-        const affiliation = affiliations.find(a => a.id === id);
-        return affiliation ? affiliation.name : 'Unknown';
+    const getFamilyName = (member_id: number) => {
+        if (!room?.settings?.families) {
+            return 'Unknown';
+        }
+        // member_id is already 1-based index into the families array
+        const familyIndex = member_id - 1;
+        if (familyIndex < 0 || familyIndex >= room.settings.families.length) {
+            return 'Unknown';
+        }
+        return room.settings.families[familyIndex];
     };
+
+    const getMealTypeOrder = (type: string) => {
+        return MEAL_TYPE_ORDER[type as keyof typeof MEAL_TYPE_ORDER] || 999;
+    };
+
+    const sortedDishes = [...dishes].sort((a, b) => {
+        switch (sortBy) {
+            case 'quantity_high':
+                return b.quantity - a.quantity;
+            case 'quantity_low':
+                return a.quantity - b.quantity;
+            case 'family':
+                return getFamilyName(a.member_id).localeCompare(getFamilyName(b.member_id));
+            case 'type':
+                return getMealTypeOrder(a.meal_type) - getMealTypeOrder(b.meal_type);
+            default:
+                return 0;
+        }
+    });
 
     if (dishes.length === 0) {
         return (
@@ -41,47 +65,54 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
 
     return (
         <>
+            <div className="mb-4 flex justify-start">
+                <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="block w-56 rounded-md border-gray-300 shadow-sm 
+                             focus:border-emerald-500 focus:ring-emerald-500 text-sm
+                             bg-white cursor-pointer"
+                >
+                    <option value="none">Sort by...</option>
+                    <option value="quantity_high">Quantity (High to Low)</option>
+                    <option value="quantity_low">Quantity (Low to High)</option>
+                    <option value="family">Family Affiliation</option>
+                    <option value="type">Course Order (Entree first)</option>
+                </select>
+            </div>
+
             <div className="space-y-4">
-                {dishes.map((dish) => (
+                {sortedDishes.map((dish) => (
                     <div
                         key={dish.id}
-                        className="bg-white shadow rounded-lg p-4 flex justify-between items-start hover:shadow-md transition-shadow"
+                        className="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
-                        <div className="flex-1">
-                            <div className="flex items-baseline space-x-3">
-                                <h3 className="text-lg font-semibold text-gray-900">{dish.name}</h3>
-                                <span className="text-lg font-medium text-emerald-600">{dish.quantity}g</span>
-                            </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-                                <div className="flex items-center">
-                                    <span className="font-medium">By:</span>
-                                    <span className="ml-1">{dish.fullName}</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="font-medium">Family:</span>
-                                    <span className="ml-1">{getAffiliationName(dish.member_id)}</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="font-medium">Type:</span>
-                                    <span className="ml-1">{dish.meal_type}</span>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">{dish.name}</h3>
+                            <div className="flex items-center space-x-3">
+                                <span className="text-lg font-medium text-emerald-600 tabular-nums">
+                                    {dish.quantity.toLocaleString('en-US')}g
+                                </span>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => setEditingDish(dish)}
+                                        className="p-1.5 text-blue-400 hover:text-blue-600 transition-colors"
+                                    >
+                                        <PencilIcon className="h-5 w-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => onDelete(dish.id)}
+                                        className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                                    >
+                                        <TrashIcon className="h-5 w-5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-2 ml-4">
-                            <button
-                                onClick={() => setEditingDish(dish)}
-                                className="text-blue-600 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 transition-colors"
-                                title="Edit Dish"
-                            >
-                                <PencilIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                                onClick={() => dish.id && onDelete(dish.id)}
-                                className="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
-                                title="Delete Dish"
-                            >
-                                <TrashIcon className="h-5 w-5" />
-                            </button>
+                        <div className="grid grid-cols-3 text-sm text-gray-500 px-1">
+                            <span>{getFamilyName(dish.member_id)} Family</span>
+                            <span className="text-center">By {dish.fullName}</span>
+                            <span className="text-right">{dish.meal_type}</span>
                         </div>
                     </div>
                 ))}
@@ -92,10 +123,8 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
                     dish={editingDish}
                     onClose={() => setEditingDish(null)}
                     onSubmit={(updatedDish) => {
-                        if (editingDish.id) {
-                            onEdit(editingDish.id, updatedDish);
-                            setEditingDish(null);
-                        }
+                        onEdit(editingDish.id, updatedDish);
+                        setEditingDish(null);
                     }}
                 />
             )}

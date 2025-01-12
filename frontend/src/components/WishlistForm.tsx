@@ -1,24 +1,45 @@
 import React, { useState } from 'react';
 import { WishlistItem } from '../types';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { useRoom } from '../contexts/RoomContext';
 
 interface WishlistFormProps {
     onSubmit: (wish: Omit<WishlistItem, 'id'>) => void;
+    onOpenModal: () => void;
+    onCloseModal: () => void;
 }
 
-export const WishlistForm: React.FC<WishlistFormProps> = ({ onSubmit }) => {
+export const WishlistForm: React.FC<WishlistFormProps> = ({ onSubmit, onOpenModal, onCloseModal }) => {
+    const { room } = useRoom();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({
         dish_name: '',
         requested_quantity: 0,
         notes: '',
+        room_id: room?.id || 0,
     });
+
+    const handleOpen = () => {
+        setIsFormOpen(true);
+        onOpenModal();
+    };
+
+    const handleClose = () => {
+        setIsFormOpen(false);
+        onCloseModal();
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
-        setFormData({ dish_name: '', requested_quantity: 0, notes: '' });
-        setIsFormOpen(false);
+        if (!room?.id) return;
+        
+        const wishData = {
+            ...formData,
+            room_id: room.id
+        };
+        onSubmit(wishData);
+        setFormData({ dish_name: '', requested_quantity: 0, notes: '', room_id: room.id });
+        handleClose();
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -32,7 +53,7 @@ export const WishlistForm: React.FC<WishlistFormProps> = ({ onSubmit }) => {
     if (!isFormOpen) {
         return (
             <button
-                onClick={() => setIsFormOpen(true)}
+                onClick={handleOpen}
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg 
                          hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
                          focus:ring-purple-500 shadow-sm transition-colors gap-2"
@@ -89,7 +110,7 @@ export const WishlistForm: React.FC<WishlistFormProps> = ({ onSubmit }) => {
                     <div className="mt-6 flex justify-end space-x-3">
                         <button
                             type="button"
-                            onClick={() => setIsFormOpen(false)}
+                            onClick={handleClose}
                             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                             Cancel

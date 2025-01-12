@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Dish, Member, FamilyAffiliation, MealType } from '../types';
-import { getMembers, getFamilyAffiliations, getMealTypes } from '../services/api';
+import { Dish, Member, MealType } from '../types';
+import { getMealTypes } from '../services/api';
+import { useRoom } from '../contexts/RoomContext';
 
 interface DishFormProps {
     onSubmit: (dish: Omit<Dish, 'id'>) => void;
-    initialValues?: Dish;
+    initialValues?: Omit<Dish, 'id'>;
     onCancel?: () => void;
     submitButtonText?: string;
 }
@@ -15,10 +16,11 @@ interface DishFormData {
     member_id: string;
     fullName: string;
     meal_type: string;
+    room_id: number;
 }
 
 export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onCancel, submitButtonText }) => {
-    const [affiliations, setAffiliations] = useState<FamilyAffiliation[]>([]);
+    const { room } = useRoom();
     const [mealTypes, setMealTypes] = useState<MealType[]>([]);
     const [formData, setFormData] = useState<DishFormData>({
         name: initialValues?.name || '',
@@ -26,19 +28,16 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
         member_id: initialValues?.member_id?.toString() || '',
         fullName: initialValues?.fullName || '',
         meal_type: initialValues?.meal_type || '',
+        room_id: initialValues?.room_id || room?.id || 0,
     });
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [affiliationsResponse, mealTypesResponse] = await Promise.all([
-                    getFamilyAffiliations(),
-                    getMealTypes()
-                ]);
-                setAffiliations(affiliationsResponse.data);
+                const mealTypesResponse = await getMealTypes();
                 setMealTypes(mealTypesResponse.data);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching meal types:', error);
             }
         };
         fetchData();
@@ -49,9 +48,10 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
         const submissionData: Omit<Dish, 'id'> = {
             name: formData.name,
             quantity: formData.quantity === '' ? 0 : parseFloat(formData.quantity),
-            member_id: parseInt(formData.member_id),
+            member_id: formData.member_id === '' ? 0 : parseInt(formData.member_id),
             fullName: formData.fullName,
             meal_type: formData.meal_type,
+            room_id: formData.room_id,
         };
         onSubmit(submissionData);
     };
@@ -94,9 +94,9 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                     <option value="">Select family affiliation</option>
-                    {affiliations.map(affiliation => (
-                        <option key={affiliation.id} value={affiliation.id}>
-                            {affiliation.name}
+                    {room?.settings?.families.map((family, index) => (
+                        <option key={index} value={index + 1}>
+                            {family}
                         </option>
                     ))}
                 </select>
@@ -113,7 +113,12 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    readOnly={!!initialValues?.name}
+                    className={`mt-1 block w-full rounded-md shadow-sm text-sm
+                        ${initialValues?.name 
+                            ? 'bg-gray-100 border-gray-200 text-gray-700 cursor-not-allowed' 
+                            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                        }`}
                 />
             </div>
 
