@@ -19,7 +19,8 @@ export const LoginPage: React.FC = () => {
         mealCount: 0,
         language: 'UK',
         families: [],
-        mealType: 'default'
+        mealTypes: ['Food', 'Drinks'],
+        selectedTypes: ['Entree', 'Main Course', 'Desert']
     });
 
     useEffect(() => {
@@ -247,63 +248,35 @@ export const LoginPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Meal Type
+                                                    What's your plan?
                                                 </label>
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="radio"
-                                                            id="default"
-                                                            name="mealType"
-                                                            value="default"
-                                                            checked={roomSettings.mealType === 'default'}
-                                                            onChange={(e) => setRoomSettings(prev => ({
-                                                                ...prev,
-                                                                mealType: e.target.value as 'default' | 'large' | 'drinks'
-                                                            }))}
-                                                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                                                            disabled={isLoading}
-                                                        />
-                                                        <label htmlFor="default" className="ml-2 block text-sm text-gray-700">
-                                                            Default (Entree, Main Course, Desert)
+                                                <div className="flex flex-wrap gap-2">
+                                                    {['Food', 'Drinks'].map((type) => (
+                                                        <label key={type} className="inline-flex items-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={roomSettings.mealTypes.includes(type)}
+                                                                onChange={(e) => {
+                                                                    const newTypes = e.target.checked
+                                                                        ? [...roomSettings.mealTypes, type]
+                                                                        : roomSettings.mealTypes.filter(t => t !== type);
+                                                                    
+                                                                    // Update selectedTypes based on Food selection
+                                                                    const selectedTypes = newTypes.includes('Food') 
+                                                                        ? ['Entree', 'Main Course', 'Desert']
+                                                                        : [];
+                                                                    
+                                                                    setRoomSettings(prev => ({
+                                                                        ...prev,
+                                                                        mealTypes: newTypes,
+                                                                        selectedTypes
+                                                                    }));
+                                                                }}
+                                                                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                                            />
+                                                            <span className="ml-2 text-sm text-gray-700">{type}</span>
                                                         </label>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="radio"
-                                                            id="large"
-                                                            name="mealType"
-                                                            value="large"
-                                                            checked={roomSettings.mealType === 'large'}
-                                                            onChange={(e) => setRoomSettings(prev => ({
-                                                                ...prev,
-                                                                mealType: e.target.value as 'default' | 'large' | 'drinks'
-                                                            }))}
-                                                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                                                            disabled={isLoading}
-                                                        />
-                                                        <label htmlFor="large" className="ml-2 block text-sm text-gray-700">
-                                                            Large (2 Main Courses)
-                                                        </label>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="radio"
-                                                            id="drinks"
-                                                            name="mealType"
-                                                            value="drinks"
-                                                            checked={roomSettings.mealType === 'drinks'}
-                                                            onChange={(e) => setRoomSettings(prev => ({
-                                                                ...prev,
-                                                                mealType: e.target.value as 'default' | 'large' | 'drinks'
-                                                            }))}
-                                                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                                                            disabled={isLoading}
-                                                        />
-                                                        <label htmlFor="drinks" className="ml-2 block text-sm text-gray-700">
-                                                            Just Drinks
-                                                        </label>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                             <div>

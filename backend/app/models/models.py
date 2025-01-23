@@ -10,6 +10,15 @@ class RoomStatus(str, enum.Enum):
     active = "active"
 
 
+class DrinkCategory(str, enum.Enum):
+    spirits = "Spirits"
+    wine = "Wine"
+    beer = "Beer"
+    soft_drinks = "Soft Drinks"
+    mixers = "Mixers"
+    other = "Other"
+
+
 class Room(Base):
     __tablename__ = "rooms"
 
@@ -21,11 +30,15 @@ class Room(Base):
 
     # Relationships
     dishes = relationship("Dish", back_populates="room", cascade="all, delete-orphan")
+    drinks = relationship("Drink", back_populates="room", cascade="all, delete-orphan")
     families = relationship(
         "Family", back_populates="room", cascade="all, delete-orphan"
     )
     wishlist_items = relationship(
         "WishlistItem", back_populates="room", cascade="all, delete-orphan"
+    )
+    drink_wishlist_items = relationship(
+        "DrinkWishlistItem", back_populates="room", cascade="all, delete-orphan"
     )
 
 
@@ -53,6 +66,9 @@ class Member(Base):
     # Relationships
     family = relationship("Family", back_populates="members")
     dishes = relationship("Dish", back_populates="member", cascade="all, delete-orphan")
+    drinks = relationship(
+        "Drink", back_populates="member", cascade="all, delete-orphan"
+    )
 
 
 class Dish(Base):
@@ -84,3 +100,37 @@ class WishlistItem(Base):
 
     # Relationships
     room = relationship("Room", back_populates="wishlist_items")
+
+
+class Drink(Base):
+    __tablename__ = "drinks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    fullName = Column(String, index=True)
+    category = Column(String, index=True)
+    other_category = Column(String, nullable=True)
+    brand = Column(String, nullable=True)
+    quantity = Column(Float)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"))
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    member = relationship("Member", back_populates="drinks")
+    room = relationship("Room", back_populates="drinks")
+
+
+class DrinkWishlistItem(Base):
+    __tablename__ = "drink_wishlist_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    drink_name = Column(String, index=True)
+    brand = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    requested_from = Column(String, nullable=True)
+    requested_quantity = Column(Float)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    room = relationship("Room", back_populates="drink_wishlist_items")

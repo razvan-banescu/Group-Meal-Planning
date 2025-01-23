@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { HomePage } from './pages/HomePage';
+import { FoodPage } from './pages/HomePage';
+import { DrinksPage } from './pages/DrinksPage';
 import { LoginPage } from './pages/LoginPage';
 import { RoomProvider } from './contexts/RoomContext';
 import { useRoom } from './contexts/RoomContext';
+import { RoomLayout } from './components/RoomLayout';
 import toast from 'react-hot-toast';
 
 // Protected route component that checks if room exists
@@ -63,10 +65,16 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route 
-              path="/room/:seed" 
+              path="/room/:seed/*" 
               element={
                 <ProtectedRoute>
-                  <HomePage />
+                  <RoomLayout>
+                    <Routes>
+                      <Route path="food" element={<FoodPage />} />
+                      <Route path="drinks" element={<DrinksPage />} />
+                      <Route path="*" element={<Navigate to="food" replace />} />
+                    </Routes>
+                  </RoomLayout>
                 </ProtectedRoute>
               } 
             />

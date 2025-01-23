@@ -3,7 +3,8 @@ export interface RoomSettings {
     mealCount: number;
     language: string;
     families: string[];
-    mealType: 'default' | 'large' | 'drinks';
+    mealTypes: string[];
+    selectedTypes: string[];  // The actual meal types (Entree, Main Course, Desert)
 }
 
 export interface Room {
@@ -43,6 +44,17 @@ export interface WishlistItem {
     room_id: number;
 }
 
+export interface DrinkWishlistItem {
+    id: number;
+    drink_name: string;
+    brand?: string;
+    description?: string;
+    requested_from?: string;
+    requested_quantity: number;
+    room_id: number;
+    created_at: string;
+}
+
 export interface FamilyAffiliation {
     id: number;
     name: string;
@@ -51,4 +63,16 @@ export interface FamilyAffiliation {
 export interface MealType {
     id: number;
     name: string;
+}
+
+export interface Drink {
+    id: number;
+    fullName: string;
+    category: string;
+    other_category?: string;
+    brand?: string;
+    quantity: number;
+    member_id: number;
+    room_id: number;
+    created_at: string;
 } 

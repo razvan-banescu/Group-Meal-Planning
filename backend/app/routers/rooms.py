@@ -16,7 +16,8 @@ class RoomSettings(BaseModel):
     mealCount: int
     language: str
     families: list[str]
-    mealType: str
+    mealTypes: list[str]
+    selectedTypes: list[str]  # The actual meal types (Entree, Main Course, Desert)
 
 
 class RoomCreate(BaseModel):

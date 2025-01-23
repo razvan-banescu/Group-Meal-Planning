@@ -25,8 +25,8 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
     const [sortBy, setSortBy] = useState<SortOption>('none');
 
     const getFamilyName = (member_id: number) => {
-        if (!room?.settings?.families) {
-            return 'Unknown';
+        if (!room?.settings?.families || room.settings.families.length === 0) {
+            return '';
         }
         // member_id is already 1-based index into the families array
         const familyIndex = member_id - 1;
@@ -47,7 +47,9 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
             case 'quantity_low':
                 return a.quantity - b.quantity;
             case 'family':
-                return getFamilyName(a.member_id).localeCompare(getFamilyName(b.member_id));
+                return room?.settings?.families?.length ? 
+                    getFamilyName(a.member_id).localeCompare(getFamilyName(b.member_id)) :
+                    0;
             case 'type':
                 return getMealTypeOrder(a.meal_type) - getMealTypeOrder(b.meal_type);
             default:
@@ -76,7 +78,9 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
                     <option value="none">Sort by...</option>
                     <option value="quantity_high">Quantity (High to Low)</option>
                     <option value="quantity_low">Quantity (Low to High)</option>
-                    <option value="family">Family Affiliation</option>
+                    {room?.settings?.families && room.settings.families.length > 0 && (
+                        <option value="family">Family Affiliation</option>
+                    )}
                     <option value="type">Course Order (Entree first)</option>
                 </select>
             </div>
@@ -110,9 +114,18 @@ export const DishList: React.FC<DishListProps> = ({ dishes, onEdit, onDelete }) 
                             </div>
                         </div>
                         <div className="grid grid-cols-3 text-sm text-gray-500 px-1">
-                            <span>{getFamilyName(dish.member_id)} Family</span>
-                            <span className="text-center">By {dish.fullName}</span>
-                            <span className="text-right">{dish.meal_type}</span>
+                            {room?.settings?.families && room.settings.families.length > 0 ? (
+                                <>
+                                    <span>{getFamilyName(dish.member_id)} Family</span>
+                                    <span className="text-center">By {dish.fullName}</span>
+                                    <span className="text-right">{dish.meal_type}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>By {dish.fullName}</span>
+                                    <span className="text-right col-span-2">{dish.meal_type}</span>
+                                </>
+                            )}
                         </div>
                     </div>
                 ))}

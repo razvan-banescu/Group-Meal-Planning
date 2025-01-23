@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Dish, Family, Member, WishlistItem, FamilyAffiliation, MealType, Room, RoomSettings } from '../types';
+import { Dish, Family, Member, WishlistItem, FamilyAffiliation, MealType, Room, RoomSettings, Drink, DrinkWishlistItem } from '../types';
 
 const API_URL = 'http://localhost:8000/api';
 
@@ -50,4 +50,21 @@ export const getMealTypes = () => api.get<MealType[]>('/meal-types/');
 // Wishlist
 export const getWishlistItems = (roomId: number) => api.get<WishlistItem[]>(`/wishlist/${roomId}`);
 export const createWishlistItem = (item: Omit<WishlistItem, 'id'>) => api.post<WishlistItem>('/wishlist/', item);
-export const deleteWishlistItem = (roomId: number, id: number) => api.delete(`/wishlist/${roomId}/${id}`); 
+export const deleteWishlistItem = (roomId: number, id: number) => api.delete(`/wishlist/${roomId}/${id}`);
+
+// Drinks
+export const getDrinks = (roomId: number) => api.get<Drink[]>(`/drinks/${roomId}`);
+export const getDrink = (roomId: number, id: number) => api.get<Drink>(`/drinks/${roomId}/${id}`);
+export const createDrink = (drink: Omit<Drink, 'id' | 'created_at'>) => api.post<Drink>('/drinks/', drink);
+export const updateDrink = (roomId: number, id: number, drink: Partial<Drink>) => 
+    api.put<Drink>(`/drinks/${roomId}/${id}`, drink);
+export const deleteDrink = (roomId: number, id: number) => 
+    api.delete(`/drinks/${roomId}/${id}`);
+export const getDrinkCategories = () => api.get<MealType[]>('/drinks/categories');
+
+// Drink Wishlist
+export const getDrinkWishes = (roomId: number) => api.get<DrinkWishlistItem[]>(`/drink-wishlist/${roomId}`);
+export const createDrinkWish = (wish: Omit<DrinkWishlistItem, 'id' | 'created_at'>) => 
+    api.post<DrinkWishlistItem>('/drink-wishlist/', wish);
+export const deleteDrinkWish = (roomId: number, id: number) => 
+    api.delete(`/drink-wishlist/${roomId}/${id}`); 

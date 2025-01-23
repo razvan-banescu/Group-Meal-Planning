@@ -49,48 +49,55 @@ def create_dish(room_id: int, dish: DishCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Room is not active")
 
     try:
-        # Validate member_id is a valid 1-based index into the families array
-        if (
-            not room.settings
-            or "families" not in room.settings
-            or dish.member_id <= 0
-            or dish.member_id > len(room.settings["families"])
-        ):
-            raise HTTPException(status_code=400, detail="Invalid family selection")
-
-        # Get the family name using member_id as 1-based index
-        family_name = room.settings["families"][dish.member_id - 1]
-
-        # Get or create the family
-        family = (
-            db.query(models.Family)
-            .filter(models.Family.name == family_name, models.Family.room_id == room_id)
-            .first()
+        # Only validate member_id if families are configured
+        has_families = (
+            room.settings
+            and "families" in room.settings
+            and isinstance(room.settings["families"], list)
+            and len(room.settings["families"]) > 0
         )
-        if not family:
-            family = models.Family(name=family_name, room_id=room_id)
-            db.add(family)
-            db.flush()
 
-        # Get or create the member
-        member = (
-            db.query(models.Member)
-            .filter(
-                models.Member.name == dish.fullName,
-                models.Member.family_id == family.id,
+        if has_families:
+            if dish.member_id <= 0 or dish.member_id > len(room.settings["families"]):
+                raise HTTPException(status_code=400, detail="Invalid family selection")
+            # Get the family name using member_id as 1-based index
+            family_name = room.settings["families"][dish.member_id - 1]
+
+            # Get or create the family
+            family = (
+                db.query(models.Family)
+                .filter(
+                    models.Family.name == family_name, models.Family.room_id == room_id
+                )
+                .first()
             )
-            .first()
-        )
-        if not member:
-            member = models.Member(name=dish.fullName, family_id=family.id)
-            db.add(member)
-            db.flush()
+            if not family:
+                family = models.Family(name=family_name, room_id=room_id)
+                db.add(family)
+                db.flush()
 
-        # Create the dish with the member_id from the database
+            # Get or create the member
+            member = (
+                db.query(models.Member)
+                .filter(
+                    models.Member.name == dish.fullName,
+                    models.Member.family_id == family.id,
+                )
+                .first()
+            )
+            if not member:
+                member = models.Member(name=dish.fullName, family_id=family.id)
+                db.add(member)
+                db.flush()
+        else:
+            # If no families configured, set member_id to 0
+            dish.member_id = 0
+
+        # Create the dish
         db_dish = models.Dish(
             name=dish.name,
             quantity=dish.quantity,
-            member_id=dish.member_id,  # Keep using the 1-based index from room settings
+            member_id=dish.member_id,
             room_id=room_id,
             meal_type=dish.meal_type,
             fullName=dish.fullName,

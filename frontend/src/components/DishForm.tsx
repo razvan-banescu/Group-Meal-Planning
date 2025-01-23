@@ -25,7 +25,7 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
     const [formData, setFormData] = useState<DishFormData>({
         name: initialValues?.name || '',
         quantity: initialValues?.quantity?.toString() || '',
-        member_id: initialValues?.member_id?.toString() || '',
+        member_id: initialValues?.member_id?.toString() || '0',
         fullName: initialValues?.fullName || '',
         meal_type: initialValues?.meal_type || '',
         room_id: initialValues?.room_id || room?.id || 0,
@@ -48,7 +48,7 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
         const submissionData: Omit<Dish, 'id'> = {
             name: formData.name,
             quantity: formData.quantity === '' ? 0 : parseFloat(formData.quantity),
-            member_id: formData.member_id === '' ? 0 : parseInt(formData.member_id),
+            member_id: room?.settings?.families?.length ? (formData.member_id === '' ? 0 : parseInt(formData.member_id)) : 0,
             fullName: formData.fullName,
             meal_type: formData.meal_type,
             room_id: formData.room_id,
@@ -81,26 +81,28 @@ export const DishForm: React.FC<DishFormProps> = ({ onSubmit, initialValues, onC
                 />
             </div>
 
-            <div>
-                <label htmlFor="member_id" className="block text-sm font-medium text-gray-700">
-                    Family Affiliation
-                </label>
-                <select
-                    id="member_id"
-                    name="member_id"
-                    value={formData.member_id}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                    <option value="">Select family affiliation</option>
-                    {room?.settings?.families.map((family, index) => (
-                        <option key={index} value={index + 1}>
-                            {family}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            {room?.settings?.families && room.settings.families.length > 0 && (
+                <div>
+                    <label htmlFor="member_id" className="block text-sm font-medium text-gray-700">
+                        Family Affiliation
+                    </label>
+                    <select
+                        id="member_id"
+                        name="member_id"
+                        value={formData.member_id}
+                        onChange={handleChange}
+                        required
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        <option value="">Select family affiliation</option>
+                        {room?.settings?.families.map((family, index) => (
+                            <option key={index} value={index + 1}>
+                                {family}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
